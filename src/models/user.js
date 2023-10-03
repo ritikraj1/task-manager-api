@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true              // Trim white spaces from both end
     },
     email: {
         type: String,
@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 7,
         trim: true,
-        validate(value) {
+        validate(value) {       // Check if the password contains "password" word
             if(validator.contains(value,'password', {ignoreCase: true})){
                 throw new Error('Password cannot contain "password"')
             }
@@ -52,15 +52,18 @@ const userSchema = new mongoose.Schema({
         type: Buffer
     }
 }, {
-    timestamps: true
+    timestamps: true    // For storing createdAt and updatedAt
 })
 
+
+// Virtual reference to get tasks of a user
 userSchema.virtual('tasks', {
     ref: 'Task',
     localField: '_id',
     foreignField: 'owner'
 })
 
+// Delete sensitive and unnecessary information before sending
 userSchema.methods.toJSON = function () {
     const user = this
     const userObject = user.toObject()
@@ -98,6 +101,7 @@ userSchema.statics.findByCredentials = async (email, password) => {
     return user
 }
 
+// Hash the password if modified
 userSchema.pre('save', async function (next) {
     const user = this
 
@@ -106,6 +110,7 @@ userSchema.pre('save', async function (next) {
     }
 })
 
+// Delete the task if owner user is deleted
 userSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
     const user = this
     await Task.deleteMany({ owner: this._id })

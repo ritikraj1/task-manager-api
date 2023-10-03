@@ -19,7 +19,7 @@ router.post('/users', async (req, res) => {
     }
 })
 
-router.post('/users/login', async (req,res) => {
+router.post('/users/login', async (req, res) => {
     try{
         const user = await User.findByCredentials(req.body.email, req.body.password)
         const token = await user.generateAuthToken()
@@ -29,9 +29,9 @@ router.post('/users/login', async (req,res) => {
     }
 })
 
-router.post('/users/logout', auth, async (req,res) => {
+router.post('/users/logout', auth, async (req, res) => {
     try{
-        req.user.tokens = req.user.tokens.filter((token) => {
+        req.user.tokens = req.user.tokens.filter((token) => {      // Delete the current session's token
             return token.token !== req.token
         })
         await req.user.save()
@@ -42,7 +42,7 @@ router.post('/users/logout', auth, async (req,res) => {
     }
 })
 
-router.post('/users/logoutAll', auth, async (req,res) => {
+router.post('/users/logoutAll', auth, async (req, res) => {
     try{
         req.user.tokens = []
         await req.user.save()
@@ -53,13 +53,13 @@ router.post('/users/logoutAll', auth, async (req,res) => {
     }
 })
 
-router.get("/users/me", auth, async (req,res) => {
+router.get("/users/me", auth, async (req, res) => {
     res.send(req.user)
 })
 
 router.patch("/users/me", auth, async (req, res) => {
     const updates = Object.keys(req.body)
-    const allowedUpdates = ["name", "email", "password", "age"]
+    const allowedUpdates = ["name", "email", "password", "age"]     //  Fields that are allowed to update
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if(!isValidOperation) {
@@ -87,6 +87,7 @@ router.delete("/users/me", auth, async (req, res) => {
     }
 })
 
+//  Limit the file size and file extension for avatar image
 const upload = multer({
     limits: {
         fileSize: 1000000
@@ -100,8 +101,8 @@ const upload = multer({
     }
 })
 
-router.post("/users/me/avatar", auth, upload.single('avatar'), async (req,res) => {
-    const buffer = await sharp(req.file.buffer).resize({ width: 250, height:250 }).png().toBuffer()
+router.post("/users/me/avatar", auth, upload.single('avatar'), async (req, res) => {
+    const buffer = await sharp(req.file.buffer).resize({ width: 250, height:250 }).png().toBuffer()     //  Standardize image size and format
     req.user.avatar = buffer
     await req.user.save()
     res.send()
@@ -109,13 +110,13 @@ router.post("/users/me/avatar", auth, upload.single('avatar'), async (req,res) =
     res.status(400).send({ error: error.message })
 })
 
-router.delete("/users/me/avatar", auth, async (req,res) => {
+router.delete("/users/me/avatar", auth, async (req, res) => {
     req.user.avatar = undefined
     await req.user.save()
     res.send()
 })
 
-router.get("/users/:id/avatar", async (req, res) => {
+router.get("/users/:id/avatar", async (req, res) => {       // Use id to get avatar, to allow access to other users' profile
     try{
         const user = await User.findById(req.params.id)
 

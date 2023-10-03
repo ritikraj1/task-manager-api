@@ -3,7 +3,7 @@ const Task = require("../models/task")
 const auth = require('../middleware/auth')
 const router = new express.Router()
 
-router.post('/tasks', auth, async (req,res) => {
+router.post('/tasks', auth, async (req, res) => {
     const task = new Task({
         ...req.body,
         owner: req.user._id
@@ -20,15 +20,15 @@ router.post('/tasks', auth, async (req,res) => {
 // GET /tasks?completed=true
 // GET /tasks?limit=10&page=20
 // GET /tasks?sortBy=createdAt:desc
-router.get("/tasks", auth, async (req,res) => {
+router.get("/tasks", auth, async (req, res) => {
     const match = {}
     const sort = {}
 
-    if (req.query.completed) {
+    if (req.query.completed) {  // Set match according to 'completed' parameter
         match.completed = req.query.completed === 'true'
     }
 
-    if (req.query.sortBy) {
+    if (req.query.sortBy) {     // Set sortBy criteria
         const parts = req.query.sortBy.split(':')
         sort[parts[0]] = parts[1] === 'desc' ? -1 : 1
     }
@@ -38,7 +38,7 @@ router.get("/tasks", auth, async (req,res) => {
             path: 'tasks',
             match,
             options: {
-                limit: parseInt(req.query.limit),
+                limit: parseInt(req.query.limit),       //  Pagination
                 skip: parseInt(req.query.limit)*(parseInt(req.query.page) - 1),
                 sort
             }
@@ -49,7 +49,7 @@ router.get("/tasks", auth, async (req,res) => {
     }
 })
 
-router.get("/tasks/:id", auth, async (req,res) => {
+router.get("/tasks/:id", auth, async (req, res) => {
     const _id = req.params.id
 
     try {
@@ -63,9 +63,9 @@ router.get("/tasks/:id", auth, async (req,res) => {
     }
 })
 
-router.patch("/tasks/:id", auth, async (req,res) => {
+router.patch("/tasks/:id", auth, async (req, res) => {
     const updates = Object.keys(req.body)
-    const allowedUpdates = ["description", "completed"]
+    const allowedUpdates = ["description", "completed"]     //  Fields that are allowed to update
     const isValidOperation = updates.every((update) => allowedUpdates.includes(update))
 
     if(!isValidOperation) {
